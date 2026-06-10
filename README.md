@@ -1,6 +1,24 @@
- 🔥 Discover 10,000+ Premium n8n Workflows
-    Build AI Agents, Automations & Business Systems
-    without starting from scratch.
+echo "# Premium N8N Workflow Explorer
+
+## 10000+ Premium n8n Templates and Workflows
+
+The ultimate collection of premium n8n automation workflows. Explore, manage, and deploy workflows with ease.
+
+## Author
+Muhammad Bakhtawar Khan
+Founder - MBK Group
+Pakistan
+
+Contact:
+Email: bakhtawark085@gmail.com
+Phone: 03200276941
+Location: Pakistan
+
+## What's Inside
+- 10000+ premium n8n workflow templates
+- Ready-to-use automation scenarios
+- Production-tested workflow configurations
+- Best practices and optimized nodes
     https://n8nhubbymbk.netlify.app/
 
  <img width="1533" height="814" alt="image" src="https://github.com/user-attachments/assets/d62858d4-358c-42d9-b720-d70e81867928" />
