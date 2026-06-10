@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>N8N Workflow Explorer — Premium Automation Hub</title>
+
+    <!-- Tailwind CSS + Google Fonts + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ----- global reset & base ----- */
+        * {
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #0b1119;
+            color: #e8edf5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ----- custom scrollbar ----- */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a2330;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+        }
+
+        /* ----- glassmorphism ----- */
+        .glass {
+            background: rgba(15, 25, 35, 0.68);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .glass-card {
+            background: rgba(18, 30, 42, 0.70);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(16, 185, 129, 0.18);
+            transition: all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(16, 185, 129, 0.2);
+        }
+
+        /* ----- skeleton shimmer ----- */
+        .skeleton {
+            background: linear-gradient(90deg, #1a273a 25%, #2a3b52 50%, #1a273a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+            border-radius: 12px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* ----- splash progress ----- */
+        .splash-progress {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 100px;
+            overflow: hidden;
+            height: 4px;
+        }
+        .splash-progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+            transition: width 0.25s ease;
+            border-radius: 100px;
+        }
+
+        /* ----- fade out splash ----- */
+        .fade-out {
+            animation: fadeOut 0.7s ease forwards;
+        }
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.04);
+                visibility: hidden;
+            }
+        }
+
+        /* ----- toast notification ----- */
+        .toast-notify {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            background: #1a273a;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-left: 4px solid #10b981;
+            padding: 14px 24px;
+            border-radius: 16px;
+            box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
+            transform: translateX(420px);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: 90vw;
+        }
+        .toast-show {
+            transform: translateX(0);
+        }
+
+        /* ----- back to top ----- */
+        .back-to-top {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            z-index: 99;
+            background: #10b981;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+        }
+        .back-to-top:hover {
+            background: #059669;
+            transform: scale(1.06);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        /* ----- active filter chips ----- */
+        .filter-chip,
+        .filter-trig {
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+        }
+        .filter-chip.active-filter,
+        .filter-trig.active-filter {
+            background: rgba(16, 185, 129, 0.20) !important;
+            border-color: rgba(16, 185, 129, 0.55) !important;
+            color: #fff;
+        }
+
+        /* ----- category items ----- */
+        .category-item {
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            border-radius: 12px;
+        }
+        .category-item.active-cat {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .category-item:hover:not(.active-cat) {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ----- responsive tweaks ----- */
+        @media (max-width: 640px) {
+            .glass-card {
+                border-radius: 16px;
+            }
+            .back-to-top {
+                width: 42px;
+                height: 42px;
+                bottom: 18px;
+                left: 18px;
+                font-size: 0.95rem;
+            }
+            .toast-notify {
+                bottom: 18px;
+                right: 18px;
+                padding: 12px 18px;
+                font-size: 0.85rem;
+                max-width: 92vw;
+            }
+        }
+
+        /* ----- light mode (optional toggle) ----- */
+        body.light-mode {
+            background: #f1f6fc;
+            color: #1a2330;
+        }
+        body.light-mode .glass {
+            background: rgba(255, 255, 255, 0.72);
+            border-color: rgba(16, 185, 129, 0.20);
+        }
+        body.light-mode .glass-card {
+            background: rgba(255, 255, 255, 0.78);
+            border-color: rgba(16, 185, 129, 0.20);
+        }
+        body.light-mode .glass-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.10);
+        }
+        body.light-mode .skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+        }
+        body.light-mode .back-to-top {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.30);
+        }
+
+        /* ----- line clamp ----- */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ----- smooth input ----- */
+        input::placeholder {
+            color: #6b7b8f;
+        }
+        body.light-mode input::placeholder {
+            color: #8a9bb0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== SPLASH SCREEN ====== -->
+    <div id="splashScreen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0b1119] transition-all duration-700">
+        <div class="text-center px-6 max-w-sm">
+            <div class="relative mb-6 inline-block">
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-[#10b981] to-[#059669] rounded-2xl flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.35)]">
+                    <i class="fas fa-code-branch text-4xl text-white"></i>
+                </div>
+                <div class="absolute -top-1 -right-1 w-7 h-7 bg-emerald-400 rounded-full animate-ping opacity-70"></div>
+            </div>
+            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent tracking-tight">
+                n8n<span class="text-emerald-400">Hub</span>
+            </h1>
+            <p class="text-gray-400 mt-2 text-sm font-medium">loading automation hub …</p>
+            <div class="w-56 mt-5 splash-progress mx-auto">
+                <div id="progressFill" class="splash-progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MAIN APP ====== -->
+    <div id="mainApp" class="opacity-0 transition-opacity duration-700">
+
+        <!-- ====== NAVBAR ====== -->
+        <nav class="fixed top-0 left-0 w-full z-50 glass border-b border-white/5 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+                <!-- brand -->
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <div class="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)]">
+                        <i class="fas fa-bolt text-white text-sm"></i>
+                    </div>
+                    <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-emerald-300 bg-clip-text text-transparent hidden sm:block">
+                        n8n<span class="text-emerald-400">Hub</span>
+                    </span>
+                </div>
+
+                <!-- search -->
+                <div class="flex-1 max-w-md px-2">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search workflows by name …"
+                        class="w-full bg-gray-800/50 border border-gray-700/60 rounded-full py-2 pl-9 pr-4 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition text-gray-200 placeholder:text-gray-500"
+                        />
+                    </div>
+                </div>
+
+                <!-- actions -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button id="darkModeToggle" class="w-9 h-9 rounded-full bg-gray-800/60 hover:bg-gray-700 transition flex items-center justify-center text-emerald-300 text-sm">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <span class="text-[10px] font-medium text-gray-400 hidden sm:block bg-gray-800/40 px-3 py-1 rounded-full border border-white/5">
+                        v2.0
+                    </span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ====== MAIN LAYOUT ====== -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+            <div class="flex flex-col lg:flex-row gap-6">
+
+                <!-- ====== SIDEBAR ====== -->
+                <aside class="lg:w-72 w-full space-y-4 flex-shrink-0">
+
+                    <!-- stats mini -->
+                    <div class="glass rounded-2xl p-4 border border-white/5">
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="bg-white/5 rounded-xl py-2">
+                                <p class="text-gray-400 text-[10px] uppercase tracking-wider font-medium">Workflows</p>
+                                <p id="statTotalWorkflows" class="text-2xl font-bold text-emerald-400">0</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl py-2">
+                                <p class="text-gray-400 text-[10px] uppercase tracking-wider font-medium">Categories</p>
+                                <p id="statTotalCategories" class="text-2xl font-bold text-emerald-400">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- categories -->
+                    <div class="glass rounded-2xl p-4 border border-white/5">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-white flex items-center gap-2 text-sm">
+                                <i class="fas fa-folder-tree text-emerald-400"></i> Categories
+                            </h3>
+                            <span class="text-[10px] text-emerald-400/70 font-medium">A–Z</span>
+                        </div>
+                        <div id="categoriesContainer" class="space-y-0.5 max-h-72 overflow-y-auto pr-1"></div>
+                    </div>
+
+                    <!-- filters -->
+                    <div class="glass rounded-2xl p-4 border border-white/5">
+                        <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2 mb-2">
+                            <i class="fas fa-filter text-xs"></i> Complexity
+                        </h4>
+                        <div id="complexityFilters" class="flex flex-wrap gap-1.5 mb-4">
+                            <button data-comp="" class="filter-chip active-filter px-3 py-1 text-[11px] rounded-full bg-emerald-600/20 border border-emerald-500/40 font-medium">All</button>
+                            <button data-comp="Simple" class="filter-chip px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Simple</button>
+                            <button data-comp="Medium" class="filter-chip px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Medium</button>
+                            <button data-comp="Complex" class="filter-chip px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Complex</button>
+                        </div>
+
+                        <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2 mb-2">
+                            <i class="fas fa-bolt text-xs"></i> Trigger
+                        </h4>
+                        <div id="triggerFilters" class="flex flex-wrap gap-1.5">
+                            <button data-trig="" class="filter-trig active-filter px-3 py-1 text-[11px] rounded-full bg-emerald-600/20 border border-emerald-500/40 font-medium">All</button>
+                            <button data-trig="Manual" class="filter-trig px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Manual</button>
+                            <button data-trig="Scheduled" class="filter-trig px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Scheduled</button>
+                            <button data-trig="Triggered" class="filter-trig px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Triggered</button>
+                            <button data-trig="Webhook" class="filter-trig px-3 py-1 text-[11px] rounded-full bg-gray-800/60 font-medium">Webhook</button>
+                        </div>
+
+                        <button id="resetFiltersBtn" class="w-full mt-4 bg-gray-800/60 hover:bg-emerald-700/40 text-sm py-1.5 rounded-full transition border border-white/5 font-medium">
+                            <i class="fas fa-undo-alt mr-1 text-[10px]"></i> Reset Filters
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- ====== MAIN CONTENT ====== -->
+                <main class="flex-1 min-w-0">
+
+                    <!-- stats bar -->
+                    <div class="glass rounded-2xl p-4 mb-5 flex flex-wrap items-center justify-between gap-3 border border-white/5">
+                        <div class="flex flex-wrap gap-4 items-center">
+                            <div>
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider font-medium">Total Workflows</span>
+                                <br />
+                                <span id="animatedTotal" class="text-2xl font-bold text-white">0</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider font-medium">Categories</span>
+                                <br />
+                                <span id="animatedCategories" class="text-2xl font-bold text-white">0</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider font-medium">Popular</span>
+                                <br />
+                                <span id="popularCategory" class="text-emerald-400 font-semibold text-sm">—</span>
+                            </div>
+                        </div>
+                        <div id="activeFiltersBadge" class="text-[11px] bg-emerald-900/30 px-3 py-1.5 rounded-full border border-white/5 whitespace-nowrap">
+                            <i class="fas fa-sliders-h mr-1"></i> No active filters
+                        </div>
+                    </div>
+
+                    <!-- workflow grid -->
+                    <div id="workflowGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+
+                    <!-- pagination -->
+                    <div class="flex flex-wrap items-center justify-center gap-3 mt-8">
+                        <button id="prevPageBtn" class="px-5 py-2 rounded-xl bg-gray-800/60 border border-white/5 hover:bg-emerald-600/30 disabled:opacity-40 disabled:hover:bg-gray-800/60 transition font-medium text-sm flex items-center gap-1.5">
+                            <i class="fas fa-chevron-left text-[10px]"></i> Previous
+                        </button>
+                        <span id="pageIndicator" class="text-sm bg-gray-800/40 px-4 py-2 rounded-full border border-white/5 font-medium">Page 1</span>
+                        <button id="nextPageBtn" class="px-5 py-2 rounded-xl bg-gray-800/60 border border-white/5 hover:bg-emerald-600/30 disabled:opacity-40 disabled:hover:bg-gray-800/60 transition font-medium text-sm flex items-center gap-1.5">
+                            Next <i class="fas fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- ====== FOOTER ====== -->
+        <footer class="border-t border-white/5 mt-6 py-6 text-center text-gray-500 text-sm glass">
+            <div class="max-w-4xl mx-auto px-4">
+                <p class="flex items-center justify-center gap-2 flex-wrap">
+                    <span class="text-emerald-400 font-semibold">⚡ N8N Workflow Explorer</span>
+                    <span class="text-gray-600">—</span>
+                    Premium automation templates
+                    <span class="text-gray-600">·</span>
+                    Built with <i class="fas fa-heart text-emerald-400 mx-1"></i> for developers
+                </p>
+                <p class="text-[11px] text-gray-600 mt-1">Data powered by n8nster · All workflows are community contributed</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ====== BACK TO TOP ====== -->
+    <button id="backToTop" class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- ====== TOAST ====== -->
+    <div id="toastMessage" class="toast-notify">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-check-circle text-emerald-400 text-base"></i>
+            <span id="toastText" class="font-medium text-sm">Action done</span>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ====== JAVASCRIPT ====== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // -------- GLOBAL STATE --------
+            let allCategories = [];
+            let selectedCategorySlug = '';
+            let currentPage = 1;
+            let totalPages = 1;
+            let complexityFilter = '';
+            let triggerFilter = '';
+            let searchQuery = '';
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            let totalWorkflowsCount = 0;
+
+            const API_CAT = 'https://n8nster.vercel.app/api/n8n?endpoint=categories';
+            const API_TEMPLATES_BASE = 'https://n8nster.vercel.app/api/n8n?endpoint=templates';
+            const LIMIT = 9;
+
+            // -------- DOM REFS --------
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            const workflowGrid = document.getElementById('workflowGrid');
+            const searchInput = document.getElementById('searchInput');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const pageIndicator = document.getElementById('pageIndicator');
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            const statTotalWorkflows = document.getElementById('statTotalWorkflows');
+            const statTotalCategories = document.getElementById('statTotalCategories');
+            const animatedTotalSpan = document.getElementById('animatedTotal');
+            const animatedCategoriesSpan = document.getElementById('animatedCategories');
+            const popularCategorySpan = document.getElementById('popularCategory');
+            const activeFiltersBadge = document.getElementById('activeFiltersBadge');
+            const backToTopBtn = document.getElementById('backToTop');
+            const toastEl = document.getElementById('toastMessage');
+            const toastText = document.getElementById('toastText');
+            const splashScreen = document.getElementById('splashScreen');
+            const mainApp = document.getElementById('mainApp');
+            const progressFill = document.getElementById('progressFill');
+
+            // -------- UTILITY --------
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+
+            function showToast(msg, isError) {
+                toastText.innerText = msg;
+                toastEl.style.borderLeftColor = isError ? '#ef4444' : '#10b981';
+                toastEl.classList.add('toast-show');
+                clearTimeout(toastEl._hideTimer);
+                toastEl._hideTimer = setTimeout(() => {
+                    toastEl.classList.remove('toast-show');
+                }, 2800);
+            }
+
+            function animateNumber(el, start, end, duration) {
+                let startTime = null;
+                const step = (ts) => {
+                    if (!startTime) startTime = ts;
+                    const p = Math.min(1, (ts - startTime) / duration);
+                    el.innerText = Math.floor(p * (end - start) + start);
+                    if (p < 1) requestAnimationFrame(step);
+                    else el.innerText = end;
+                };
+                requestAnimationFrame(step);
+            }
+
+            // -------- SPLASH --------
+            let progress = 0;
+            const splashInterval = setInterval(() => {
+                progress += Math.floor(Math.random() * 14) + 4;
+                if (progress >= 100) { progress = 100;
+                    clearInterval(splashInterval); }
+                progressFill.style.width = progress + '%';
+                if (progress >= 100) {
+                    setTimeout(() => {
+                        splashScreen.classList.add('fade-out');
+                        mainApp.classList.remove('opacity-0');
+                        mainApp.classList.add('opacity-100');
+                    }, 450);
+                }
+            }, 170);
+
+            // -------- API: CATEGORIES --------
+            async function fetchCategories() {
+                try {
+                    const res = await fetch(API_CAT);
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    allCategories = data.categories || [];
+                    allCategories.sort((a, b) => a.name.localeCompare(b.name));
+                    statTotalCategories.innerText = allCategories.length;
+                    animateNumber(animatedCategoriesSpan, 0, allCategories.length, 700);
+                    renderSidebarCategories();
+                    computePopularCategory();
+                    return allCategories;
+                } catch (_) {
+                    showToast('Failed to load categories', true);
+                    return [];
+                }
+            }
+
+            function renderSidebarCategories() {
+                let html = `
+                    <div data-cat="" class="category-item cursor-pointer px-3 py-2 flex items-center justify-between rounded-xl transition-all ${!selectedCategorySlug ? 'active-cat' : ''}">
+                        <span class="font-medium text-sm">✨ All Workflows</span>
+                        <span class="text-emerald-400 text-[11px] font-medium">${allCategories.reduce((s, c) => s + (c.count || 0), 0)}</span>
+                    </div>
+                `;
+                allCategories.forEach(cat => {
+                    const active = selectedCategorySlug === cat.slug;
+                    html += `
+                        <div data-cat="${cat.slug}" class="category-item cursor-pointer px-3 py-2 flex items-center justify-between rounded-xl transition-all ${active ? 'active-cat' : ''}">
+                            <span class="text-sm ${active ? 'text-white' : 'text-gray-300'}">${escapeHtml(cat.name)}</span>
+                            <span class="text-emerald-400 text-[11px] font-medium">${cat.count || 0}</span>
+                        </div>
+                    `;
+                });
+                categoriesContainer.innerHTML = html;
+
+                document.querySelectorAll('.category-item').forEach(el => {
+                    el.addEventListener('click', function() {
+                        selectedCategorySlug = this.dataset.cat || '';
+                        currentPage = 1;
+                        fetchWorkflows();
+                        renderSidebarCategories();
+                    });
+                });
+            }
+
+            function computePopularCategory() {
+                if (!allCategories.length) return;
+                const popular = [...allCategories].sort((a, b) => (b.count || 0) - (a.count || 0))[0];
+                popularCategorySpan.innerText = popular?.name || '—';
+            }
+
+            // -------- API: WORKFLOWS --------
+            async function fetchWorkflows() {
+                showSkeletonCards();
+
+                let url = `${API_TEMPLATES_BASE}&limit=${LIMIT}&page=${currentPage}`;
+                if (selectedCategorySlug) url += `&category=${encodeURIComponent(selectedCategorySlug)}`;
+                if (complexityFilter) url += `&complexity=${encodeURIComponent(complexityFilter)}`;
+                if (triggerFilter) url += `&triggerType=${encodeURIComponent(triggerFilter)}`;
+
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('API error');
+                    const data = await res.json();
+
+                    let templates = data.templates || [];
+                    const pagination = data.pagination || { currentPage: 1, totalPages: 1 };
+                    totalPages = pagination.totalPages || 1;
+
+                    // client-side search
+                    if (searchQuery.trim() !== '') {
+                        const q = searchQuery.toLowerCase().trim();
+                        templates = templates.filter(t => (t.name || '').toLowerCase().includes(q));
+                        totalPages = Math.ceil(templates.length / LIMIT);
+                        const startIdx = (currentPage - 1) * LIMIT;
+                        templates = templates.slice(startIdx, startIdx + LIMIT);
+                    }
+
+                    totalWorkflowsCount = templates.length;
+                    statTotalWorkflows.innerText = totalWorkflowsCount;
+                    animateNumber(animatedTotalSpan, 0, totalWorkflowsCount, 600);
+                    renderWorkflowCards(templates);
+                    updatePaginationUI();
+                    updateActiveFilterBadge();
+
+                } catch (_) {
+                    showToast('Failed to load workflows, retry', true);
+                    workflowGrid.innerHTML = `
+                        <div class="col-span-full glass rounded-2xl p-10 text-center border border-white/5">
+                            <i class="fas fa-exclamation-triangle text-emerald-400 text-3xl mb-3"></i>
+                            <p class="text-gray-300">Something went wrong.</p>
+                            <button id="retryBtn" class="mt-3 bg-emerald-600 hover:bg-emerald-500 px-5 py-1.5 rounded-full text-white text-sm font-medium transition">
+                                <i class="fas fa-sync-alt mr-1"></i> Retry
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('retryBtn')?.addEventListener('click', fetchWorkflows);
+                }
+            }
+
+            function showSkeletonCards() {
+                let skeletons = '';
+                for (let i = 0; i < 6; i++) {
+                    skeletons += `
+                        <div class="glass-card p-4">
+                            <div class="skeleton h-32 w-full rounded-xl mb-3"></div>
+                            <div class="skeleton h-4 w-3/4 mb-2"></div>
+                            <div class="skeleton h-3 w-full mb-1"></div>
+                            <div class="skeleton h-3 w-5/6"></div>
+                        </div>
+                    `;
+                }
+                workflowGrid.innerHTML = skeletons;
+            }
+
+            function renderWorkflowCards(workflows) {
+                if (!workflows.length) {
+                    workflowGrid.innerHTML = `
+                        <div class="col-span-full glass rounded-2xl p-10 text-center border border-white/5">
+                            <i class="fas fa-search text-emerald-400 text-3xl mb-3"></i>
+                            <p class="text-gray-300">No workflows found. Try adjusting your filters.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                workflows.forEach(wf => {
+                    const isFav = favorites.includes(wf.id);
+                    html += `
+                        <div class="glass-card flex flex-col">
+                            <!-- header area -->
+                            <div class="relative h-36 bg-gradient-to-br from-gray-800/80 to-gray-900/80 flex items-center justify-center">
+                                <i class="fas fa-diagram-project text-5xl text-emerald-400/30"></i>
+                                <button class="fav-btn absolute top-3 right-3 bg-black/40 hover:bg-black/60 rounded-full p-2 transition" data-id="${wf.id}">
+                                    <i class="fas ${isFav ? 'fa-heart text-red-400' : 'fa-heart text-gray-400'} text-sm"></i>
+                                </button>
+                            </div>
+                            <!-- body -->
+                            <div class="p-4 flex flex-col flex-1">
+                                <h3 class="font-bold text-white text-base leading-tight">${escapeHtml(wf.name || 'Untitled')}</h3>
+                                <p class="text-gray-400 text-[13px] mt-1 line-clamp-2 flex-1">${escapeHtml(wf.description || 'No description available.')}</p>
+                                <div class="flex flex-wrap gap-1.5 mt-3">
+                                    <span class="text-[10px] bg-gray-800/70 px-2 py-0.5 rounded-full border border-white/5">📂 ${escapeHtml(wf.category || 'Uncategorized')}</span>
+                                    <span class="text-[10px] bg-emerald-900/40 px-2 py-0.5 rounded-full border border-emerald-500/20">⚡ ${wf.complexity || 'Simple'}</span>
+                                    <span class="text-[10px] bg-blue-900/30 px-2 py-0.5 rounded-full border border-blue-500/20">🔌 ${wf.triggerType || 'Manual'}</span>
+                                    <span class="text-[10px] bg-gray-800/60 px-2 py-0.5 rounded-full border border-white/5">🧩 ${wf.nodeCount || 0}</span>
+                                </div>
+                                <div class="flex justify-between mt-3 text-[11px] text-gray-400 border-t border-white/5 pt-2">
+                                    <span><i class="far fa-user mr-1"></i> n8n-community</span>
+                                    <span><i class="far fa-calendar-alt mr-1"></i> Mar 2025</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 mt-2">
+                                    ${wf.githubPath ? `<a href="${wf.githubPath}" target="_blank" class="text-center bg-gray-800/60 hover:bg-emerald-700/50 py-1.5 rounded-lg text-[10px] font-medium transition border border-white/5"><i class="fab fa-github mr-1"></i> GitHub</a>` : `<span class="text-center bg-gray-800/30 py-1.5 rounded-lg text-[10px] text-gray-500 border border-white/5">No repo</span>`}
+                                    ${wf.downloadUrl ? `<a href="${wf.downloadUrl}" target="_blank" class="text-center bg-emerald-800/50 hover:bg-emerald-600/70 py-1.5 rounded-lg text-[10px] font-medium transition border border-emerald-500/20"><i class="fas fa-download mr-1"></i> JSON</a>` : `<span class="text-center bg-gray-800/30 py-1.5 rounded-lg text-[10px] text-gray-500 border border-white/5">Unavail</span>`}
+                                    <button class="details-btn text-center bg-gray-800/60 hover:bg-gray-700/80 py-1.5 rounded-lg text-[10px] font-medium transition border border-white/5" data-name="${escapeHtml(wf.name)}" data-desc="${escapeHtml(wf.description)}">Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                workflowGrid.innerHTML = html;
+
+                // fav events
+                document.querySelectorAll('.fav-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.dataset.id;
+                        if (favorites.includes(id)) {
+                            favorites = favorites.filter(f => f !== id);
+                        } else {
+                            favorites.push(id);
+                        }
+                        localStorage.setItem('favorites', JSON.stringify(favorites));
+                        fetchWorkflows();
+                        showToast('❤️ Favorites updated');
+                    });
+                });
+
+                // details events
+                document.querySelectorAll('.details-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const name = this.dataset.name || 'Workflow';
+                        const desc = this.dataset.desc || '';
+                        const preview = desc.length > 60 ? desc.substring(0, 60) + '…' : desc;
+                        showToast(`📄 ${name} — ${preview}`);
+                    });
+                });
+            }
+
+            // -------- PAGINATION UI --------
+            function updatePaginationUI() {
+                const total = totalPages || 1;
+                pageIndicator.innerText = `Page ${currentPage} of ${total}`;
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= total;
+            }
+
+            function updateActiveFilterBadge() {
+                const parts = [];
+                if (selectedCategorySlug) parts.push(`Category: ${selectedCategorySlug}`);
+                if (complexityFilter) parts.push(`Complexity: ${complexityFilter}`);
+                if (triggerFilter) parts.push(`Trigger: ${triggerFilter}`);
+                if (searchQuery) parts.push(`"${searchQuery}"`);
+                if (parts.length) {
+                    activeFiltersBadge.innerHTML = `<i class="fas fa-sliders-h mr-1"></i> ${parts.join(' · ')}`;
+                } else {
+                    activeFiltersBadge.innerHTML = `<i class="fas fa-sliders-h mr-1"></i> No active filters`;
+                }
+            }
+
+            // -------- RESET --------
+            function resetFilters() {
+                selectedCategorySlug = '';
+                complexityFilter = '';
+                triggerFilter = '';
+                searchQuery = '';
+                searchInput.value = '';
+                currentPage = 1;
+
+                document.querySelectorAll('.filter-chip').forEach(c => {
+                    c.classList.remove('active-filter');
+                });
+                document.querySelectorAll('.filter-trig').forEach(t => {
+                    t.classList.remove('active-filter');
+                });
+                const defaultChip = document.querySelector('[data-comp=""]');
+                if (defaultChip) defaultChip.classList.add('active-filter');
+                const defaultTrig = document.querySelector('[data-trig=""]');
+                if (defaultTrig) defaultTrig.classList.add('active-filter');
+
+                renderSidebarCategories();
+                fetchWorkflows();
+            }
+
+            // -------- EVENT BINDING --------
+            function initFilters() {
+                // complexity
+                document.querySelectorAll('.filter-chip').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active-filter'));
+                        this.classList.add('active-filter');
+                        complexityFilter = this.dataset.comp || '';
+                        currentPage = 1;
+                        fetchWorkflows();
+                    });
+                });
+
+                // trigger
+                document.querySelectorAll('.filter-trig').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.filter-trig').forEach(t => t.classList.remove('active-filter'));
+                        this.classList.add('active-filter');
+                        triggerFilter = this.dataset.trig || '';
+                        currentPage = 1;
+                        fetchWorkflows();
+                    });
+                });
+            }
+
+            // search
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value;
+                currentPage = 1;
+                fetchWorkflows();
+            });
+
+            // pagination
+            prevBtn.addEventListener('click', function() {
+                if (currentPage > 1) { currentPage--;
+                    fetchWorkflows(); }
+            });
+            nextBtn.addEventListener('click', function() {
+                if (currentPage < totalPages) { currentPage++;
+                    fetchWorkflows(); }
+            });
+
+            // reset
+            resetFiltersBtn.addEventListener('click', resetFilters);
+
+            // back to top
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            window.addEventListener('scroll', function() {
+                backToTopBtn.classList.toggle('visible', window.scrollY > 350);
+            });
+
+            // dark mode toggle
+            const darkToggle = document.getElementById('darkModeToggle');
+            let dark = true;
+            darkToggle.addEventListener('click', function() {
+                document.body.classList.toggle('light-mode');
+                dark = !dark;
+                this.innerHTML = dark ?
+                    '<i class="fas fa-moon"></i>' :
+                    '<i class="fas fa-sun text-yellow-400"></i>';
+                if (!dark) {
+                    document.body.style.background = '#f1f6fc';
+                } else {
+                    document.body.style.background = '#0b1119';
+                }
+            });
+
+            // -------- INIT --------
+            async function init() {
+                await fetchCategories();
+                initFilters();
+                await fetchWorkflows();
+            }
+
+            init();
+
+        })();
+    </script>
+
+</body>
+</html>
