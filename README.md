@@ -1,15 +1,8 @@
-https://n8nhubbymbk.netlify.app/ 
-🔥 Discover 10,000+ Premium n8n Workflows
+ 🔥 Discover 10,000+ Premium n8n Workflows
+    Build AI Agents, Automations & Business Systems
+    without starting from scratch.
+    https://n8nhubbymbk.netlify.app/
 
-Build AI Agents, Automations & Business Systems
-without starting from scratch.
-
-[ Browse Templates ]
-[ Join WhatsApp Community ]
-
-⭐⭐⭐⭐⭐ 4.9/5 Rating
-12,000+ Members
-500+ Premium Templates
  <img width="1533" height="814" alt="image" src="https://github.com/user-attachments/assets/d62858d4-358c-42d9-b720-d70e81867928" />
   <img width="1527" height="809" alt="image" src="https://github.com/user-attachments/assets/3fcb7618-ee38-4661-b10d-4155bbffa82f" />
  
