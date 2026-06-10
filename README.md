@@ -1,11 +1,32 @@
+echo "# Premium N8N Workflow Explorer
 
-  # Premium N8N Workflow Explorer
+## Description
+This is a premium workflow explorer for n8n automation platform.
 
-  This is a code bundle for Premium N8N Workflow Explorer. The original project is available at https://www.figma.com/design/Yc3BUGUn04D0rH9kSHU6RK/Premium-N8N-Workflow-Explorer.
+## Installation
 
-  ## Running the code
+\`\`\`bash
+npm i
+\`\`\`
 
-  Run `npm i` to install the dependencies.
+## Development
 
-  Run `npm run dev` to start the development server.
-  "# N8N-Workflows" 
+\`\`\`bash
+npm run dev
+\`\`\`
+
+## Files in this Repository
+- package.json - Project dependencies
+- Source code files
+- Configuration files
+
+## Original Design Reference
+Figma Design: https://www.figma.com/design/Yc3BUGUn04D0rH9kSHU6RK/Premium-N8N-Workflow-Explorer
+
+## Author
+BAKHTAWAR333" > README.md
+
+# Update on GitHub
+git add README.md
+git commit -m "Update README - remove Figma files reference"
+git push
