@@ -1,4 +1,4 @@
-echo "# Premium N8N Workflow Explorer
+ Premium N8N Workflow Explorer
 
 ## 10000+ Premium n8n Templates and Workflows
 
